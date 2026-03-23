@@ -1,0 +1,13 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/TalentTrack/obj
+bin/
+obj/
+.vs/
+*.user
+*.suo
+*.log
+TestResults/
