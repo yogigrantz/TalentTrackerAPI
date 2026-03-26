@@ -17,6 +17,10 @@ string logDir = Path.Combine(Environment.GetEnvironmentVariable("HOME") ?? "", "
 LogProvider logP = new LogProvider(LogLevel.Error, logDir, "TalentTrackErrorlog.txt", 10, 50000);
 builder.Logging.ClearProviders(); // If you want to use just this log provider only for logging  
 builder.Logging.AddProvider(logP);
+
+builder.Services.AddScoped<IRabbitPublisher, RabbitPublisher>();
+
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

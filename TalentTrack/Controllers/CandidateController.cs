@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using System.Threading.Tasks;
 
 namespace TalentTrack.Controllers;
 
@@ -11,10 +12,12 @@ namespace TalentTrack.Controllers;
 public class CandidateController : ControllerBase
 {
     private ICandidateService _candidateService;
+    private readonly IRabbitPublisher _rabbitMQ;
 
-    public CandidateController(ICandidateService candidateService)
+    public CandidateController(ICandidateService candidateService, IRabbitPublisher rabbitMQ)
     {
         this._candidateService = candidateService;
+        this._rabbitMQ = rabbitMQ;
     }
 
     [HttpGet]
@@ -36,9 +39,12 @@ public class CandidateController : ControllerBase
 
 
     [HttpPost]
-    public IActionResult Create([FromBody] Candidate candidate)
+    public async Task<IActionResult> Create([FromBody] Candidate candidate)
     {
         string created = _candidateService.Create(candidate);
+
+        string result = await _rabbitMQ.PublishCandidateCreated(candidate, $"Candidate.Created");
+
         return Ok(created);
     }
 
