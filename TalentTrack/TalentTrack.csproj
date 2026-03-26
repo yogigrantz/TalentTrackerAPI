@@ -11,6 +11,8 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.24" />
    
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+   
+    <PackageReference Include="YGLogProvider" Version="1.1.0" />
   </ItemGroup>
 
   <ItemGroup>

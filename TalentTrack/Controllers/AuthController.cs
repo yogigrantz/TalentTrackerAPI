@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
+using Services;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using TalentTrack.DTO;
@@ -15,16 +18,19 @@ namespace TalentTrack.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IConfiguration _config;
+    private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IConfiguration config)
+    public AuthController(IConfiguration config, ILogger<AuthController> logger)
     {
         _config = config;
+        this._logger = logger;
     }
 
     [HttpGet("login")]
     [AllowAnonymous]
     public IActionResult DisplayOK()
     {
+        _logger.LogInformation("Test 123...");
         return Ok("Ready...");
     }
 
@@ -34,17 +40,22 @@ public class AuthController : ControllerBase
     public IActionResult Login(LoginRequest request)
     {
         // For demo only — hardcoded validation
-        if (request.Username != "yogi" || request.Password != "20002026!")
+        var user = UserService.Users.FirstOrDefault(u => u.UserName.Equals(request.Username,StringComparison.OrdinalIgnoreCase) && u.Active);
+        if (user == null)
+            return Unauthorized("User does not exist");
+
+        bool isValid = BCrypt.Net.BCrypt.Verify(request.Password, user.Password);
+
+        if (!isValid)
             return Unauthorized("Invalid credentials");
 
         var claims = new[]
         {
-        new Claim(ClaimTypes.Name, request.Username),
-        new Claim(ClaimTypes.Role, "Admin")
-    };
+            new Claim(ClaimTypes.Name, user.UserName??""),
+            new Claim(ClaimTypes.Role, user.Role ?? "")
+        };
 
-        var key = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]??""));
 
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

@@ -1,0 +1,36 @@
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json.Linq;
+using TalentTrack.Controllers;
+using TalentTrack.DTO;
+
+namespace TalentTrackTests;
+
+[TestClass]
+public class RegistrationControllerTest
+{
+    [TestMethod]
+    public void RegisterTest()
+    {
+        var controller = new RegistrationController();
+
+        var request = new RegisterRequestDTO
+        {
+            UserName = "UnitTester",
+            Password = "MySecretPassword",
+            Email = "MSTest@tester.com"
+        };
+
+        var result = controller.Register(request);
+
+        var okResult = result as OkObjectResult;
+        var value = okResult.Value;
+        var messageProp = value.GetType().GetProperty("message");
+        var userIdProp = value.GetType().GetProperty("userId");
+
+        var message = messageProp?.GetValue(value)?.ToString();
+        var userId = (int)(userIdProp?.GetValue(value) ?? 0);
+
+        Assert.AreEqual("User registered successfully", message);
+        Assert.IsTrue(userId > 0);
+    }
+}

@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Generic;
 using TalentTrack.Controllers;
 
@@ -27,7 +29,8 @@ public class AuthControllerTest
     public void Login_WithValidCredentials_ReturnsOk()
     {
         IConfiguration config = BuildFakeConfig();
-        var controller = new AuthController(config);
+        ILogger<AuthController> logger = NullLogger<AuthController>.Instance;
+        var controller = new AuthController(config, logger);
 
         var request = new TalentTrack.DTO.LoginRequest()
         {
@@ -60,7 +63,9 @@ public class AuthControllerTest
     public void Login_WithInvalidCredentials_ReturnsUnauthorized()
     {
         IConfiguration config = BuildFakeConfig();
-        var controller = new AuthController(config);
+        ILogger<AuthController> logger = NullLogger<AuthController>.Instance;
+
+        var controller = new AuthController(config, logger);
 
         var request = new TalentTrack.DTO.LoginRequest()
         {

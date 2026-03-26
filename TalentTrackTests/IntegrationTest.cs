@@ -23,7 +23,7 @@ public class IntegrationTest
         // Step 1: login
         var login = new
         {
-            username = "yogi",
+            username = "Yogi",
             password = "20002026!"
         };
 
