@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json.Linq;
+using Services;
+using System.Threading.Tasks;
 using TalentTrack.Controllers;
 using TalentTrack.DTO;
 
@@ -9,9 +11,11 @@ namespace TalentTrackTests;
 public class RegistrationControllerTest
 {
     [TestMethod]
-    public void RegisterTest()
+    public async Task RegisterTest()
     {
-        var controller = new RegistrationController();
+        var fakeSb = new FakeServiceBusPublisher();
+
+        var controller = new RegistrationController(fakeSb);
 
         var request = new RegisterRequestDTO
         {
@@ -20,7 +24,7 @@ public class RegistrationControllerTest
             Email = "MSTest@tester.com"
         };
 
-        var result = controller.Register(request);
+        var result = await controller.Register(request);
 
         var okResult = result as OkObjectResult;
         var value = okResult.Value;

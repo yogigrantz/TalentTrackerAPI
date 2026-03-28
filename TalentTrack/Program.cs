@@ -19,7 +19,7 @@ builder.Logging.ClearProviders(); // If you want to use just this log provider o
 builder.Logging.AddProvider(logP);
 
 builder.Services.AddScoped<IRabbitPublisher, RabbitPublisher>();
-
+builder.Services.AddScoped<IServiceBusPublisher, ServiceBusPublisher>();
 builder.Services.AddMemoryCache();
 
 builder.Services.AddControllers();

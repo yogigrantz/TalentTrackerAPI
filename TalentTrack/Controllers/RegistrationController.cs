@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Services;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using TalentTrack.DTO;
 
 namespace TalentTrack.Controllers;
@@ -14,6 +15,13 @@ namespace TalentTrack.Controllers;
 [ApiController]
 public class RegistrationController : ControllerBase
 {
+    private readonly IServiceBusPublisher _serviceBus;
+
+    public RegistrationController(IServiceBusPublisher serviceBus)
+    {
+        this._serviceBus = serviceBus;
+    }
+
     [HttpGet]
     public IActionResult GetAllUsers()
     {
@@ -30,7 +38,7 @@ public class RegistrationController : ControllerBase
 
     [HttpPost]
     [AllowAnonymous]
-    public IActionResult Register(RegisterRequestDTO request)
+    public async Task<IActionResult> Register(RegisterRequestDTO request)
     {
         // Basic validation
         if (string.IsNullOrWhiteSpace(request.UserName) ||
@@ -67,6 +75,15 @@ public class RegistrationController : ControllerBase
         };
 
         UserService.Users.Add(newUser);
+
+        string serviceBusResult = await _serviceBus.SendMessageAsync("TalentTrackNewUser", new
+                                            {
+                                                eventType = "UserRegistered",
+                                                userId = newUser.UserId,
+                                                userName = newUser.UserName,
+                                                email = newUser.Email,
+                                                createdAt = DateTime.UtcNow
+                                            });
 
         return Ok(new
         {
