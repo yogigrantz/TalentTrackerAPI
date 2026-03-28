@@ -20,6 +20,7 @@ builder.Logging.AddProvider(logP);
 
 builder.Services.AddScoped<IRabbitPublisher, RabbitPublisher>();
 
+builder.Services.AddMemoryCache();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

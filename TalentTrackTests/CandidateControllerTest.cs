@@ -10,7 +10,7 @@ public class CandidateControllerTest
     [TestMethod]
     public void GetCandidateFoundTest()
     {
-        CandidateController c = new CandidateController(new CandidateService());
+        CandidateController c = new CandidateController(new CandidateService(), new FakeRabbitPublisher());
         var result = c.GetById(1);
         Assert.IsTrue(result is OkObjectResult);
     }
@@ -18,7 +18,7 @@ public class CandidateControllerTest
     [TestMethod]
     public void GetCandidateNotFoundTest()
     {
-        CandidateController c = new CandidateController(new CandidateService());
+        CandidateController c = new CandidateController(new CandidateService(), new FakeRabbitPublisher());
         var result = c.GetById(-1);
         Assert.IsTrue(result is NotFoundResult);
     }
