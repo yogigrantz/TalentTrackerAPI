@@ -1,5 +1,6 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -7,6 +8,7 @@ using Services;
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.RateLimiting;
 using YGLogProvider;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,6 +23,23 @@ builder.Logging.AddProvider(logP);
 builder.Services.AddScoped<IRabbitPublisher, RabbitPublisher>();
 builder.Services.AddScoped<IServiceBusPublisher, ServiceBusPublisher>();
 builder.Services.AddMemoryCache();
+builder.Services.AddRateLimiter(options =>
+{
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(_ =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            "global", _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1)
+            }));
+
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = 429;
+        await context.HttpContext.Response.WriteAsync("Stop it!!!", token);
+    };
+});
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -97,6 +116,7 @@ builder.Services.AddScoped<IPlacementService, PlacementService>();
 
 var app = builder.Build();
 
+app.UseRateLimiter();
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
 //{
@@ -113,7 +133,7 @@ app.UseCors("AllowAngular");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting("global");
 
 app.Run();
 
